@@ -12,7 +12,7 @@ displayURL="https://github.com/Frefreak/mc_the_toolkits"
 # TODO
 #logoFile="examplemod.png" #optional
 description='''
-A mod providing various utilities to inspect the internal of game objects
+A mod providing various utilities to inspect the internal of game objects \
 (blocks, items, world...)
 '''
 [[dependencies.the_toolkits]]

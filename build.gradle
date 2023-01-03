@@ -138,10 +138,17 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
+    maven {
+        // location of the maven that hosts JEI files
+        name = "Progwml6 maven"
+        url = "https://dvs1.progwml6.com/files/maven/"
+    }
 }
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.18.2-40.2.0'
+
+    runtimeOnly fg.deobf("mezz.jei:jei-1.18.2-forge:${jeiVersion}")
 }
 
 jar {
