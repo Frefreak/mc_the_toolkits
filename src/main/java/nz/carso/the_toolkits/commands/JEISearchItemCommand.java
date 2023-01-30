@@ -1,0 +1,37 @@
+package nz.carso.the_toolkits.commands;
+
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.mojang.logging.LogUtils;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.entity.player.Player;
+import nz.carso.the_toolkits.TheToolkits;
+import nz.carso.the_toolkits.compat.jei.TheToolkitsJEI;
+import net.minecraft.network.chat.Component;
+
+import org.slf4j.Logger;
+
+
+public class JEISearchItemCommand {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    public static ArgumentBuilder<CommandSourceStack, ?> register() {
+        return Commands.literal("jei")
+            .then(
+                Commands.argument("text", StringArgumentType.string())
+                    .executes(ctx -> {
+                        if (TheToolkits.isJEIAvailable()) {
+                            Player player = (Player)ctx.getSource().getEntity();
+                            TheToolkitsJEI.doSearch(StringArgumentType.getString(ctx, "text"));
+                        } else {
+                            ctx.getSource().sendFailure(new TranslatableComponent("commands.error.jei_not_available"));
+                        }
+                        return 1;
+                    })
+            );
+    }
+}

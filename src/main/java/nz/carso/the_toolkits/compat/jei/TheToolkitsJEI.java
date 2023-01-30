@@ -2,6 +2,7 @@ package nz.carso.the_toolkits.compat.jei;
 
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.ingredients.ITypedIngredient;
+import mezz.jei.api.runtime.IIngredientFilter;
 import mezz.jei.api.runtime.IIngredientListOverlay;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.world.item.ItemStack;
@@ -41,5 +42,13 @@ public class TheToolkitsJEI implements IModPlugin {
         }
         Optional<ItemStack> itemStack = ingredients.get().getIngredient(VanillaTypes.ITEM_STACK);
         return itemStack.orElse(null);
+    }
+
+    public static void doSearch(String id) {
+        if (theRuntime == null) {
+            return;
+        }
+        IIngredientFilter filter = theRuntime.getIngredientFilter();
+        filter.setFilterText("&" + id);
     }
 }

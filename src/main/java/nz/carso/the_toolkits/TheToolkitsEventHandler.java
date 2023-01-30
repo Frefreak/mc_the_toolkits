@@ -1,18 +1,22 @@
 package nz.carso.the_toolkits;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.logging.LogUtils;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import nz.carso.the_toolkits.commands.JEISearchItemCommand;
 import nz.carso.the_toolkits.compat.jei.TheToolkitsJEI;
 import nz.carso.the_toolkits.messages.MessageLinkItem;
 import org.slf4j.Logger;
@@ -20,7 +24,6 @@ import org.slf4j.Logger;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_SLASH;
 
 public class TheToolkitsEventHandler {
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     public static void init() {
         if (FMLEnvironment.dist == Dist.CLIENT) {
@@ -48,6 +51,19 @@ public class TheToolkitsEventHandler {
                 }
                 TheToolkitsPacketHandler.INSTANCE.sendToServer(new MessageLinkItem(is));
             }
+
+        }
+    }
+
+    @Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+    public static class CommonForgeEventHandler {
+        @SubscribeEvent
+        public static void registerCommand(RegisterCommandsEvent event)
+        {
+            CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
+            LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("the-toolkits")
+                    .then(JEISearchItemCommand.register());
+            dispatcher.register(builder);
 
         }
     }
