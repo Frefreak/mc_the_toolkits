@@ -1,6 +1,6 @@
 package nz.carso.the_toolkits;
 
 public class Constants {
-    protected static final String MOD_ID = "the_toolkits";
+    public static final String MOD_ID = "the_toolkits";
     protected static final String PROTOCOL_VERSION = "1.0";
 }

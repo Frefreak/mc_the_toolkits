@@ -1,6 +1,7 @@
 package nz.carso.the_toolkits;
 
 import com.mojang.logging.LogUtils;
+import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
@@ -24,9 +25,12 @@ public class TheToolkits
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final String PROTOCOL_VERSION = "1";
 
+    public static IJeiRuntime jeiRuntime;
+
     public TheToolkits()
     {
         LOGGER.info("init");
         TheToolkitsPacketHandler.init();
+        TheToolkitsEventHandler.init();
     }
 }

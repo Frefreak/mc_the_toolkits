@@ -1,11 +1,10 @@
 package nz.carso.the_toolkits;
 
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import nz.carso.the_toolkits.messages.AbstractMessage;
-import nz.carso.the_toolkits.messages.MessageSendChatToAllPlayer;
+import nz.carso.the_toolkits.messages.MessageLinkItem;
 
 import static nz.carso.the_toolkits.Constants.PROTOCOL_VERSION;
 
@@ -20,7 +19,7 @@ public class TheToolkitsPacketHandler {
 
     public static void init()
     {
-        registerMessage(MessageSendChatToAllPlayer.class, new MessageSendChatToAllPlayer());
+        registerMessage(MessageLinkItem.class, new MessageLinkItem());
     }
 
     public static<T> void registerMessage(Class<T> cls, AbstractMessage<T> msg) {
