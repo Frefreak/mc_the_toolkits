@@ -10,7 +10,9 @@ import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import nz.carso.the_toolkits.compat.jei.TheToolkitsJEI;
 import nz.carso.the_toolkits.messages.MessageLinkItem;
 import org.slf4j.Logger;
@@ -19,15 +21,20 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_SLASH;
 
 public class TheToolkitsEventHandler {
     private static final Logger LOGGER = LogUtils.getLogger();
-    static KeyMapping linkKey = new KeyMapping("key." + Constants.MOD_ID + ".link_key", KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW_KEY_SLASH, "key.categories." + Constants.MOD_ID);
 
     public static void init() {
-        ClientRegistry.registerKeyBinding(linkKey);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            ClientOnlyForgeEventHandler.init();
+        }
     }
 
 
     @Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
     public static class ClientOnlyForgeEventHandler {
+        static KeyMapping linkKey = new KeyMapping("key." + Constants.MOD_ID + ".link_key", KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW_KEY_SLASH, "key.categories." + Constants.MOD_ID);
+        public static void init() {
+            ClientRegistry.registerKeyBinding(linkKey);
+        }
         @SubscribeEvent
         public static void keyPress(ScreenEvent.KeyboardKeyPressedEvent.Post event)
         {
