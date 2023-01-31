@@ -4,8 +4,12 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ClientRegistry;
@@ -23,6 +27,7 @@ import org.slf4j.Logger;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_SLASH;
 
+
 public class TheToolkitsEventHandler {
 
     public static void init() {
@@ -34,7 +39,9 @@ public class TheToolkitsEventHandler {
 
     @Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
     public static class ClientOnlyForgeEventHandler {
-        static KeyMapping linkKey = new KeyMapping("key." + Constants.MOD_ID + ".link_key", KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW_KEY_SLASH, "key.categories." + Constants.MOD_ID);
+        static KeyMapping linkKey = new KeyMapping("key." + Constants.MOD_ID + ".link_key",
+                KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW_KEY_SLASH,
+                "key.categories." + Constants.MOD_ID);
         public static void init() {
             ClientRegistry.registerKeyBinding(linkKey);
         }
@@ -44,12 +51,24 @@ public class TheToolkitsEventHandler {
             if (!linkKey.isActiveAndMatches(InputConstants.getKey(event.getKeyCode(), event.getScanCode()))) {
                 return;
             }
+            // first try JEI ingredient list
             if (TheToolkits.isJEIAvailable()) {
                 ItemStack is = TheToolkitsJEI.getItemStackUnderMouse();
-                if (is == null) {
+                if (is != null) {
+                    TheToolkitsPacketHandler.sendMessage(new MessageLinkItem(is));
                     return;
                 }
-                TheToolkitsPacketHandler.INSTANCE.sendToServer(new MessageLinkItem(is));
+            }
+            // try player inventory
+            Screen screen = event.getScreen();
+            if (screen instanceof AbstractContainerScreen<?> gui) {
+                Slot slot = gui.getSlotUnderMouse();
+                if (slot != null) {
+                    ItemStack is = slot.getItem();
+                    if (!is.isEmpty()) {
+                        TheToolkitsPacketHandler.sendMessage(new MessageLinkItem(is));
+                    }
+                }
             }
 
         }

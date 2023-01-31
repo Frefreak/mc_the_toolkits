@@ -24,6 +24,7 @@ public class TheToolkitsPacketHandler {
 
     public static<T> void registerMessage(Class<T> cls, AbstractMessage<T> msg) {
         INSTANCE.registerMessage(messageID, cls, msg::write, msg::read, msg::handle);
+        messageID += 1;
     }
 
     public static<T> void sendMessage(AbstractMessage<T> msg) {
