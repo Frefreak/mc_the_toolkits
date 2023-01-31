@@ -1,5 +1,6 @@
 package nz.carso.the_toolkits.compat.jei;
 
+import com.mojang.logging.LogUtils;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.runtime.IIngredientFilter;
@@ -22,11 +23,13 @@ import mezz.jei.api.JeiPlugin;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import org.slf4j.Logger;
 
 import java.util.Optional;
 
 @JeiPlugin
 public class TheToolkitsJEI implements IModPlugin {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static IJeiRuntime theRuntime = null;
     @Override
     public @NotNull ResourceLocation getPluginUid() {
@@ -51,16 +54,22 @@ public class TheToolkitsJEI implements IModPlugin {
         return itemStack.orElse(null);
     }
 
-    public static void doSearch(Player player, String text) {
+    public static void doSearch(String text) {
         if (theRuntime == null) {
+            return;
+        }
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) {
+            return;
+        }
+        if (!mc.level.isClientSide) {
+            LOGGER.error("somehow doSearch called in non-client side?");
             return;
         }
         IIngredientFilter filter = theRuntime.getIngredientFilter();
         filter.setFilterText(text);
-        Minecraft mc = Minecraft.getInstance();
-        mc.setScreen(new InventoryScreen(player));
-
-        //KeyMapping.click(Minecraft.getInstance().options.keyInventory.getKey());
-
+        if (mc.player != null) {
+            mc.setScreen(new InventoryScreen(mc.player));
+        }
     }
 }

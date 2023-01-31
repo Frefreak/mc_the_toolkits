@@ -23,7 +23,6 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import nz.carso.the_toolkits.commands.JEISearchItemCommand;
 import nz.carso.the_toolkits.compat.jei.TheToolkitsJEI;
 import nz.carso.the_toolkits.messages.MessageLinkItem;
-import org.slf4j.Logger;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_SLASH;
 
@@ -55,7 +54,7 @@ public class TheToolkitsEventHandler {
             if (TheToolkits.isJEIAvailable()) {
                 ItemStack is = TheToolkitsJEI.getItemStackUnderMouse();
                 if (is != null) {
-                    TheToolkitsPacketHandler.sendMessage(new MessageLinkItem(is));
+                    TheToolkitsPacketHandler.sendToServer(new MessageLinkItem(is));
                     return;
                 }
             }
@@ -66,7 +65,7 @@ public class TheToolkitsEventHandler {
                 if (slot != null) {
                     ItemStack is = slot.getItem();
                     if (!is.isEmpty()) {
-                        TheToolkitsPacketHandler.sendMessage(new MessageLinkItem(is));
+                        TheToolkitsPacketHandler.sendToServer(new MessageLinkItem(is));
                     }
                 }
             }

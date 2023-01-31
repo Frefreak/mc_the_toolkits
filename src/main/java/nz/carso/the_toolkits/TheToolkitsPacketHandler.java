@@ -2,8 +2,10 @@ package nz.carso.the_toolkits;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import nz.carso.the_toolkits.messages.AbstractMessage;
+import nz.carso.the_toolkits.messages.MessageDoJEISearch;
 import nz.carso.the_toolkits.messages.MessageLinkItem;
 
 import static nz.carso.the_toolkits.Constants.PROTOCOL_VERSION;
@@ -20,6 +22,7 @@ public class TheToolkitsPacketHandler {
     public static void init()
     {
         registerMessage(MessageLinkItem.class, new MessageLinkItem());
+        registerMessage(MessageDoJEISearch.class, new MessageDoJEISearch());
     }
 
     public static<T> void registerMessage(Class<T> cls, AbstractMessage<T> msg) {
@@ -27,8 +30,11 @@ public class TheToolkitsPacketHandler {
         messageID += 1;
     }
 
-    public static<T> void sendMessage(AbstractMessage<T> msg) {
+    public static<T> void sendToServer(AbstractMessage<T> msg) {
         INSTANCE.sendToServer(msg);
+    }
+    public static<T> void sendTo(PacketDistributor.PacketTarget target, AbstractMessage<T> msg) {
+        INSTANCE.send(target, msg);
     }
 
 }
