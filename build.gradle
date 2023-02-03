@@ -16,7 +16,7 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 
 
-version = '1.1'
+version = '1.2'
 group = 'nz.carso.the_toolkits'
 archivesBaseName = 'the-toolkits'
 

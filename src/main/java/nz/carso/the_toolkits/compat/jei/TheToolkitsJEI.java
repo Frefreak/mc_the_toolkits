@@ -3,6 +3,7 @@ package nz.carso.the_toolkits.compat.jei;
 import com.mojang.logging.LogUtils;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.ingredients.ITypedIngredient;
+import mezz.jei.api.runtime.IBookmarkOverlay;
 import mezz.jei.api.runtime.IIngredientFilter;
 import mezz.jei.api.runtime.IIngredientListOverlay;
 import mezz.jei.api.runtime.IJeiRuntime;
@@ -47,6 +48,19 @@ public class TheToolkitsJEI implements IModPlugin {
         }
         IIngredientListOverlay listOverlay = theRuntime.getIngredientListOverlay();
         Optional<ITypedIngredient<?>> ingredients = listOverlay.getIngredientUnderMouse();
+        if (ingredients.isEmpty()) {
+            return null;
+        }
+        Optional<ItemStack> itemStack = ingredients.get().getIngredient(VanillaTypes.ITEM_STACK);
+        return itemStack.orElse(null);
+    }
+
+    public static ItemStack getItemStackUnderMouseBookmark() {
+        if (theRuntime == null) {
+            return null;
+        }
+        IBookmarkOverlay bookmarkOverlay = theRuntime.getBookmarkOverlay();
+        Optional<ITypedIngredient<?>> ingredients = bookmarkOverlay.getIngredientUnderMouse();
         if (ingredients.isEmpty()) {
             return null;
         }

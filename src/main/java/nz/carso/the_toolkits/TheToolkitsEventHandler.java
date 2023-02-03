@@ -50,9 +50,16 @@ public class TheToolkitsEventHandler {
             if (!linkKey.isActiveAndMatches(InputConstants.getKey(event.getKeyCode(), event.getScanCode()))) {
                 return;
             }
-            // first try JEI ingredient list
+            // first try JEI ingredient list or bookmark overlay
             if (TheToolkits.isJEIAvailable()) {
+                // ingredient list
                 ItemStack is = TheToolkitsJEI.getItemStackUnderMouse();
+                if (is != null) {
+                    TheToolkitsPacketHandler.sendToServer(new MessageLinkItem(is));
+                    return;
+                }
+                // bookmark
+                is = TheToolkitsJEI.getItemStackUnderMouseBookmark();
                 if (is != null) {
                     TheToolkitsPacketHandler.sendToServer(new MessageLinkItem(is));
                     return;
