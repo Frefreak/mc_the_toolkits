@@ -53,7 +53,7 @@ public class NBTCommand {
             String tagString = tag.toString();
             msg.append(tagString);
             Style style = msg.getStyle();
-            style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, tagString));
+            style = style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, tagString));
             msg.setStyle(style);
         }
         p.sendMessage(msg, Util.NIL_UUID);
