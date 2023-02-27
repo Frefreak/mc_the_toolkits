@@ -45,7 +45,7 @@ public class NBTCommand {
         CompoundTag tag = is.getTag();
         MutableComponent msg = (MutableComponent)(name);
         if (tag == null || resourceLocation == null) {
-            msg = new TextComponent(name + " has null tag or resource location");
+            msg = new TextComponent("null tag or resource location");
         } else {
             msg.append(new TextComponent("\n"));
             msg.append(new TextComponent(resourceLocation.toString()));
