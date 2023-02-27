@@ -21,7 +21,7 @@ public class NBTCommand {
     };
 
     public static ArgumentBuilder<CommandSourceStack, ?> register() {
-        return Commands.literal("nbt")
+        return Commands.literal("nbt").requires(c -> c.hasPermission(2))
             .then(
                 Commands.argument("op", StringArgumentType.string()).suggests(SUGGEST_OP)
                     .executes(ctx -> {
