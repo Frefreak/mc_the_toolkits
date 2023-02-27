@@ -21,6 +21,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import nz.carso.the_toolkits.commands.JEISearchItemCommand;
+import nz.carso.the_toolkits.commands.NBTCommand;
 import nz.carso.the_toolkits.compat.jei.TheToolkitsJEI;
 import nz.carso.the_toolkits.messages.MessageLinkItem;
 
@@ -87,7 +88,8 @@ public class TheToolkitsEventHandler {
         {
             CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
             LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("the-toolkits")
-                    .then(JEISearchItemCommand.register());
+                    .then(JEISearchItemCommand.register())
+                    .then(NBTCommand.register());
             dispatcher.register(builder);
 
         }
