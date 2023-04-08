@@ -3,7 +3,6 @@ package nz.carso.the_toolkits.commands;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.*;
@@ -11,9 +10,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Collection;
-import java.util.function.Consumer;
 
 public class AttributesCommand {
 
@@ -33,7 +32,7 @@ public class AttributesCommand {
                                         getCurrentAttributes(p);
                                         return 1;
                                     } else {
-                                        p.sendMessage(new TextComponent("current only get is supported"), Util.NIL_UUID);
+                                        p.sendSystemMessage(Component.literal("current only get is supported"));
                                         return 0;
                                     }
                                 })
@@ -47,7 +46,7 @@ public class AttributesCommand {
         StringBuilder msg = new StringBuilder();
         msg.append("Syncable Attributes:\n");
         syncableAttributes.forEach((consumer) -> {
-            ResourceLocation name = consumer.getAttribute().getRegistryName();
+            ResourceLocation name = ForgeRegistries.ATTRIBUTES.getKey(consumer.getAttribute());
             double value = consumer.getValue();
             msg.append(name).append(": ").append(value).append("\n");
         });
@@ -56,15 +55,15 @@ public class AttributesCommand {
 
         msg.append("Dirty Attributes:\n");
         dirtyAttributes.forEach((consumer) -> {
-            ResourceLocation name = consumer.getAttribute().getRegistryName();
+            ResourceLocation name = ForgeRegistries.ATTRIBUTES.getKey(consumer.getAttribute());
             double value = consumer.getValue();
             msg.append(name).append(": ").append(value).append("\n");
         });
         String msgString = msg.toString();
-        MutableComponent mc = new TextComponent(msgString);
+        MutableComponent mc = Component.literal(msgString);
         Style style = mc.getStyle();
         style = style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, msgString));
         mc.setStyle(style);
-        p.sendMessage(mc, Util.NIL_UUID);
+        p.sendSystemMessage(mc);
     }
 }

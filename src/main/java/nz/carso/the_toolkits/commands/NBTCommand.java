@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class NBTCommand {
 
@@ -31,7 +32,7 @@ public class NBTCommand {
                             getCurrentItemNBT(p);
                             return 1;
                         } else {
-                            p.sendMessage(new TextComponent("current only get is supported"), Util.NIL_UUID);
+                            p.sendSystemMessage(Component.literal("current only get is supported"));
                             return 0;
                         }
                     })
@@ -41,21 +42,21 @@ public class NBTCommand {
     private static void getCurrentItemNBT(Player p) {
         ItemStack is = p.getItemInHand(InteractionHand.MAIN_HAND);
         Component name = is.getDisplayName();
-        ResourceLocation resourceLocation = is.getItem().getRegistryName();
+        ResourceLocation resourceLocation = ForgeRegistries.ITEMS.getKey(is.getItem());
         CompoundTag tag = is.getTag();
         MutableComponent msg = (MutableComponent)(name);
         if (tag == null || resourceLocation == null) {
-            msg = new TextComponent("null tag or resource location");
+            msg = Component.literal("null tag or resource location");
         } else {
-            msg.append(new TextComponent("\n"));
-            msg.append(new TextComponent(resourceLocation.toString()));
-            msg.append(new TextComponent("\n"));
+            msg.append("\n");
+            msg.append(resourceLocation.toString());
+            msg.append("\n");
             String tagString = tag.toString();
             msg.append(tagString);
             Style style = msg.getStyle();
             style = style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, tagString));
             msg.setStyle(style);
         }
-        p.sendMessage(msg, Util.NIL_UUID);
+        p.sendSystemMessage(msg);
     }
 }

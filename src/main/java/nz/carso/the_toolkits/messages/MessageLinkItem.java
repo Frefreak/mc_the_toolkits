@@ -3,13 +3,12 @@ package nz.carso.the_toolkits.messages;
 import net.minecraft.Util;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.*;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -43,10 +42,9 @@ public class MessageLinkItem implements AbstractMessage<MessageLinkItem> {
             if (sender != null) {
                 PlayerList players = sender.server.getPlayerList();
 
-                TranslatableComponent component = new TranslatableComponent(
-                        ((TextComponent)sender.getName()).getText() + " just referenced a thing: ");
+                MutableComponent component = Component.translatable(sender.getName().getString() + " just referenced a thing: ");
                 MutableComponent comp = (MutableComponent) msg.itemStack.getDisplayName();
-                ResourceLocation location = msg.itemStack.getItem().getRegistryName();
+                ResourceLocation location = ForgeRegistries.ITEMS.getKey(msg.itemStack.getItem());
                 // only add click event if registry name is found
                 if (location != null) {
                     Style style = comp.getStyle();
@@ -55,7 +53,7 @@ public class MessageLinkItem implements AbstractMessage<MessageLinkItem> {
                     comp.setStyle(style);
                 }
                 component.append(comp);
-                players.broadcastMessage(component, ChatType.CHAT, Util.NIL_UUID);
+                players.broadcastSystemMessage(component, false);
             }
 
         });

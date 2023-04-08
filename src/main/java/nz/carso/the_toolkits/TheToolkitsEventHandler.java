@@ -3,6 +3,7 @@ package nz.carso.the_toolkits;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.logging.LogUtils;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 
@@ -12,14 +13,13 @@ import net.minecraft.commands.Commands;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.ClientRegistry;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import nz.carso.the_toolkits.commands.AttributesCommand;
 import nz.carso.the_toolkits.commands.JEISearchItemCommand;
 import nz.carso.the_toolkits.commands.NBTCommand;
@@ -31,24 +31,30 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_SLASH;
 
 public class TheToolkitsEventHandler {
 
+    static KeyMapping linkKey;
     public static void init() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            ClientOnlyForgeEventHandler.init();
+        // move register KeyMapping logic to RegisterKeyMappingsEvent
+    }
+
+    @Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+    public static class ClientOnlyModEventHandler {
+        @SubscribeEvent
+        public static void registryKeyBinding(RegisterKeyMappingsEvent evt) {
+            linkKey = new KeyMapping("key." + Constants.MOD_ID + ".link_key",
+                    KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW_KEY_SLASH,
+                    "key.categories." + Constants.MOD_ID);
+            evt.register(linkKey);
         }
     }
 
-
     @Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
     public static class ClientOnlyForgeEventHandler {
-        static KeyMapping linkKey = new KeyMapping("key." + Constants.MOD_ID + ".link_key",
-                KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW_KEY_SLASH,
-                "key.categories." + Constants.MOD_ID);
-        public static void init() {
-            ClientRegistry.registerKeyBinding(linkKey);
-        }
         @SubscribeEvent
-        public static void keyPress(ScreenEvent.KeyboardKeyPressedEvent.Post event)
+        public static void keyPress(ScreenEvent.KeyPressed.Post event)
         {
+            if (linkKey == null) {
+                return;
+            }
             if (!linkKey.isActiveAndMatches(InputConstants.getKey(event.getKeyCode(), event.getScanCode()))) {
                 return;
             }

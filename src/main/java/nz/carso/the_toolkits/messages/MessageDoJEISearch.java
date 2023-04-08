@@ -1,6 +1,7 @@
 package nz.carso.the_toolkits.messages;
 
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import nz.carso.the_toolkits.compat.jei.TheToolkitsJEI;

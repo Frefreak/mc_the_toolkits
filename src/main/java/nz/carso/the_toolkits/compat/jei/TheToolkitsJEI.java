@@ -7,16 +7,9 @@ import mezz.jei.api.runtime.IBookmarkOverlay;
 import mezz.jei.api.runtime.IIngredientFilter;
 import mezz.jei.api.runtime.IIngredientListOverlay;
 import mezz.jei.api.runtime.IJeiRuntime;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.components.ChatComponent;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.client.settings.KeyBindingMap;
 import nz.carso.the_toolkits.Constants;
 
 import mezz.jei.api.IModPlugin;
@@ -83,7 +76,8 @@ public class TheToolkitsJEI implements IModPlugin {
         IIngredientFilter filter = theRuntime.getIngredientFilter();
         filter.setFilterText(text);
         if (mc.player != null) {
-            mc.setScreen(new InventoryScreen(mc.player));
+            // mc.setScreen(new InventoryScreen(mc.player));
+            mc.player.sendSystemMessage(Component.literal("disable opening inventory for now"));
         }
     }
 }
