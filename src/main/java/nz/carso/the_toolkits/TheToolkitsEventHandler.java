@@ -24,6 +24,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import nz.carso.the_toolkits.commands.AttributesCommand;
 import nz.carso.the_toolkits.commands.JEISearchItemCommand;
 import nz.carso.the_toolkits.commands.NBTCommand;
+import nz.carso.the_toolkits.commands.TestCommand;
 import nz.carso.the_toolkits.compat.jei.TheToolkitsJEI;
 import nz.carso.the_toolkits.messages.MessageLinkItem;
 
@@ -76,7 +77,8 @@ public class TheToolkitsEventHandler {
             }
             // try player inventory
             Screen screen = Minecraft.getInstance().screen;
-            if (screen instanceof ContainerScreen<?> gui) {
+            if (screen instanceof ContainerScreen<?>) {
+                ContainerScreen<?> gui = (ContainerScreen<?>) screen;
                 Slot slot = gui.getSlotUnderMouse();
                 if (slot != null) {
                     ItemStack is = slot.getItem();
@@ -98,7 +100,8 @@ public class TheToolkitsEventHandler {
             LiteralArgumentBuilder<CommandSource> builder = Commands.literal("the-toolkits")
                     .then(JEISearchItemCommand.register())
                     .then(NBTCommand.register())
-                    .then(AttributesCommand.register());
+                    .then(AttributesCommand.register())
+                    .then(TestCommand.register());
             dispatcher.register(builder);
 
         }

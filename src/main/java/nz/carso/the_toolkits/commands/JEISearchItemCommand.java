@@ -24,7 +24,8 @@ public class JEISearchItemCommand {
                 Commands.argument("text", StringArgumentType.string())
                     .executes(ctx -> {
                         if (TheToolkits.isJEIAvailable()) {
-                            if (ctx.getSource().getEntity() instanceof ServerPlayerEntity player) {
+                            if (ctx.getSource().getEntity() instanceof ServerPlayerEntity) {
+                                ServerPlayerEntity player = (ServerPlayerEntity) ctx.getSource().getEntity();
                                 String text = StringArgumentType.getString(ctx, "text");
                                 TheToolkitsPacketHandler.sendTo(PacketDistributor.PLAYER.with(() -> player), new MessageDoJEISearch(text));
                             }

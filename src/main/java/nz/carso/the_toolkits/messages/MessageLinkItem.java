@@ -49,7 +49,7 @@ public class MessageLinkItem implements AbstractMessage<MessageLinkItem> {
                 if (location != null) {
                     Style style = comp.getStyle();
                     style = style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                            "/the-toolkits jei \"@%s &%s\"".formatted(location.getNamespace(), location.getPath())));
+                            String.format("/the-toolkits jei \"@%s &%s\"", location.getNamespace(), location.getPath())));
                     comp = comp.setStyle(style);
                 }
                 component.append(comp);
