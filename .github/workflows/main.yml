@@ -62,5 +62,5 @@ jobs:
               --header "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
               --header "Content-Type: $(file -b --mime-type "$jar_file")" \
               --upload-file "$jar_file" \
-              --url "${{ steps.create_release.outputs.upload_url }}?name=$asset_name"
+              --url "${{ steps.create_release.outputs.upload_url }}=$asset_name"
           done
