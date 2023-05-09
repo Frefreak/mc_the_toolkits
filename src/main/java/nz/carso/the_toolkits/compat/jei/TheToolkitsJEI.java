@@ -1,37 +1,36 @@
 package nz.carso.the_toolkits.compat.jei;
 
-import com.mojang.logging.LogUtils;
-import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.ingredients.ITypedIngredient;
+import mezz.jei.api.MethodsReturnNonnullByDefault;
+import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.runtime.IBookmarkOverlay;
 import mezz.jei.api.runtime.IIngredientFilter;
 import mezz.jei.api.runtime.IIngredientListOverlay;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.client.gui.screen.inventory.InventoryScreen;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import nz.carso.the_toolkits.Constants;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
-import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import org.slf4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.util.Optional;
+import javax.annotation.Nonnull;
 
 @JeiPlugin
 public class TheToolkitsJEI implements IModPlugin {
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger();
     private static IJeiRuntime theRuntime = null;
     @Override
-    public @NotNull ResourceLocation getPluginUid() {
+    @Nonnull
+    public ResourceLocation getPluginUid() {
         return new ResourceLocation(Constants.MOD_ID, "main");
     }
 
     @Override
-    public void onRuntimeAvailable(@NotNull IJeiRuntime jeiRuntime) {
+    public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
         theRuntime = jeiRuntime;
     }
 
@@ -40,12 +39,8 @@ public class TheToolkitsJEI implements IModPlugin {
             return null;
         }
         IIngredientListOverlay listOverlay = theRuntime.getIngredientListOverlay();
-        Optional<ITypedIngredient<?>> ingredients = listOverlay.getIngredientUnderMouse();
-        if (ingredients.isEmpty()) {
-            return null;
-        }
-        Optional<ItemStack> itemStack = ingredients.get().getIngredient(VanillaTypes.ITEM_STACK);
-        return itemStack.orElse(null);
+        IIngredientType<ItemStack> ingredientType = theRuntime.getIngredientManager().getIngredientType(ItemStack.class);
+        return listOverlay.getIngredientUnderMouse(ingredientType);
     }
 
     public static ItemStack getItemStackUnderMouseBookmark() {
@@ -53,12 +48,12 @@ public class TheToolkitsJEI implements IModPlugin {
             return null;
         }
         IBookmarkOverlay bookmarkOverlay = theRuntime.getBookmarkOverlay();
-        Optional<ITypedIngredient<?>> ingredients = bookmarkOverlay.getIngredientUnderMouse();
-        if (ingredients.isEmpty()) {
-            return null;
+        IIngredientType<ItemStack> ingredientType = theRuntime.getIngredientManager().getIngredientType(ItemStack.class);
+        Object ingredient = bookmarkOverlay.getIngredientUnderMouse();
+        if (ingredient instanceof ItemStack) {
+            return (ItemStack)ingredient;
         }
-        Optional<ItemStack> itemStack = ingredients.get().getIngredient(VanillaTypes.ITEM_STACK);
-        return itemStack.orElse(null);
+        return null;
     }
 
     public static void doSearch(String text) {
@@ -76,8 +71,8 @@ public class TheToolkitsJEI implements IModPlugin {
         IIngredientFilter filter = theRuntime.getIngredientFilter();
         filter.setFilterText(text);
         if (mc.player != null) {
-            // mc.setScreen(new InventoryScreen(mc.player));
-            mc.player.sendSystemMessage(Component.literal("disable opening inventory for now"));
+            mc.setScreen(new InventoryScreen(mc.player));
+            //mc.player.sendMessage(new TranslationTextComponent("disable opening inventory for now"), Util.NIL_UUID);
         }
     }
 }

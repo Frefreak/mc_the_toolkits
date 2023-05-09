@@ -1,25 +1,26 @@
 package nz.carso.the_toolkits;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.logging.LogUtils;
-import net.minecraft.client.KeyMapping;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.client.util.InputMappings;
+import net.minecraft.command.CommandSource;
+import net.minecraft.command.Commands;
+import net.minecraft.inventory.container.Slot;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import nz.carso.the_toolkits.commands.AttributesCommand;
 import nz.carso.the_toolkits.commands.JEISearchItemCommand;
 import nz.carso.the_toolkits.commands.NBTCommand;
@@ -31,7 +32,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_SLASH;
 
 public class TheToolkitsEventHandler {
 
-    static KeyMapping linkKey;
+    static KeyBinding linkKey;
     public static void init() {
         // move register KeyMapping logic to RegisterKeyMappingsEvent
     }
@@ -39,23 +40,23 @@ public class TheToolkitsEventHandler {
     @Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientOnlyModEventHandler {
         @SubscribeEvent
-        public static void registryKeyBinding(RegisterKeyMappingsEvent evt) {
-            linkKey = new KeyMapping("key." + Constants.MOD_ID + ".link_key",
-                    KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW_KEY_SLASH,
+        public static void registryKeyBinding(FMLClientSetupEvent evt) {
+            linkKey = new KeyBinding("key." + Constants.MOD_ID + ".link_key",
+                    KeyConflictContext.GUI, KeyModifier.SHIFT, InputMappings.Type.KEYSYM, GLFW_KEY_SLASH,
                     "key.categories." + Constants.MOD_ID);
-            evt.register(linkKey);
+            ClientRegistry.registerKeyBinding(linkKey);
         }
     }
 
     @Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
     public static class ClientOnlyForgeEventHandler {
         @SubscribeEvent
-        public static void keyPress(ScreenEvent.KeyPressed.Post event)
+        public static void keyPress(InputEvent.KeyInputEvent event)
         {
             if (linkKey == null) {
                 return;
             }
-            if (!linkKey.isActiveAndMatches(InputConstants.getKey(event.getKeyCode(), event.getScanCode()))) {
+            if (linkKey.isActiveAndMatches(InputMappings.getKey(event.getKey(), event.getScanCode()))) {
                 return;
             }
             // first try JEI ingredient list or bookmark overlay
@@ -74,8 +75,8 @@ public class TheToolkitsEventHandler {
                 }
             }
             // try player inventory
-            Screen screen = event.getScreen();
-            if (screen instanceof AbstractContainerScreen<?> gui) {
+            Screen screen = Minecraft.getInstance().screen;
+            if (screen instanceof ContainerScreen<?> gui) {
                 Slot slot = gui.getSlotUnderMouse();
                 if (slot != null) {
                     ItemStack is = slot.getItem();
@@ -93,8 +94,8 @@ public class TheToolkitsEventHandler {
         @SubscribeEvent
         public static void registerCommand(RegisterCommandsEvent event)
         {
-            CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
-            LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("the-toolkits")
+            CommandDispatcher<CommandSource> dispatcher = event.getDispatcher();
+            LiteralArgumentBuilder<CommandSource> builder = Commands.literal("the-toolkits")
                     .then(JEISearchItemCommand.register())
                     .then(NBTCommand.register())
                     .then(AttributesCommand.register());
