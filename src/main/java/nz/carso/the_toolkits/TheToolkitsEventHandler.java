@@ -21,10 +21,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import nz.carso.the_toolkits.commands.AttributesCommand;
-import nz.carso.the_toolkits.commands.JEISearchItemCommand;
-import nz.carso.the_toolkits.commands.NBTCommand;
-import nz.carso.the_toolkits.commands.TestCommand;
+import nz.carso.the_toolkits.commands.*;
 import nz.carso.the_toolkits.compat.jei.TheToolkitsJEI;
 import nz.carso.the_toolkits.messages.MessageLinkItem;
 import org.apache.logging.log4j.LogManager;
@@ -107,6 +104,7 @@ public class TheToolkitsEventHandler {
                     .then(JEISearchItemCommand.register())
                     .then(NBTCommand.register())
                     .then(AttributesCommand.register())
+                    .then(RecipeCommand.register())
                     .then(TestCommand.register());
             dispatcher.register(builder);
 

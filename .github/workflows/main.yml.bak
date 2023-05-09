@@ -34,10 +34,10 @@ jobs:
 
       - name: Set release date and time
         run: |
-          echo "RELEASE_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
+          echo "RELEASE_DATETIME=$(date '+%Y-%m-%d-%H:%M:%S')" >> $GITHUB_ENV
 
       - name: Extract tag name
-        run: echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+        run: echo "TAG_NAME=${GITHUB_REF##*/}-$(date '+%Y-%m-%d-%H:%M:%S')" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
