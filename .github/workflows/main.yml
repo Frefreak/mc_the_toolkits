@@ -32,11 +32,11 @@ jobs:
           name: build-libs
           path: build/libs/*.jar
 
+      - name: Set release date and time
+        run: |
+          echo "RELEASE_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
       - name: Create Release
         id: create_release
-        run: |
-          RELEASE_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
-          echo "RELEASE_DATETIME=$RELEASE_DATETIME" >> $GITHUB_ENV
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
