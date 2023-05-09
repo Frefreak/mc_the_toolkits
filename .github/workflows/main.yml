@@ -36,9 +36,8 @@ jobs:
         run: |
           echo "RELEASE_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
 
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::\${GITHUB_REF/refs\/tags\//}
+      - name: Extract tag name
+        run: echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
