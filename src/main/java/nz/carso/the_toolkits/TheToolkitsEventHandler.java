@@ -27,8 +27,10 @@ import nz.carso.the_toolkits.commands.NBTCommand;
 import nz.carso.the_toolkits.commands.TestCommand;
 import nz.carso.the_toolkits.compat.jei.TheToolkitsJEI;
 import nz.carso.the_toolkits.messages.MessageLinkItem;
+import org.apache.logging.log4j.LogManager;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_SLASH;
+import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 
 
 public class TheToolkitsEventHandler {
@@ -57,9 +59,13 @@ public class TheToolkitsEventHandler {
             if (linkKey == null) {
                 return;
             }
-            if (linkKey.isActiveAndMatches(InputMappings.getKey(event.getKey(), event.getScanCode()))) {
+            if (!linkKey.isActiveAndMatches(InputMappings.getKey(event.getKey(), event.getScanCode()))) {
                 return;
             }
+            if (event.getAction() != GLFW_RELEASE) {
+                return;
+            }
+            LogManager.getLogger().info(event.getAction());
             // first try JEI ingredient list or bookmark overlay
             if (TheToolkits.isJEIAvailable()) {
                 // ingredient list
