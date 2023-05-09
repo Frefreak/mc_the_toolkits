@@ -18,7 +18,7 @@ A mod providing various utilities to inspect the internal of game objects
 [[dependencies.the_toolkits]]
     modId="forge"
     mandatory=true
-    versionRange="[40,)"
+    versionRange="[36,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.the_toolkits]]
