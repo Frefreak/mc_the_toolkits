@@ -1,6 +1,6 @@
 package nz.carso.the_toolkits.commands;
 
-import com.google.gson.JsonElement;
+import com.google.gson.*;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -12,26 +12,34 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.RecipeManager;
+import net.minecraft.nbt.*;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.util.text.*;
+import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
+import nz.carso.the_toolkits.TheToolkitsPacketHandler;
+import nz.carso.the_toolkits.messages.MessageDoJEISearch;
+import nz.carso.the_toolkits.messages.MessageDumpRecipe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.jmx.Server;
 
+import java.lang.reflect.Type;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RecipeCommand {
     static final Logger logger = LogManager.getLogger();
-    static HashMap<String, HashMap<String, List<IRecipe<?>>>> recipes = new HashMap<>();
+    public static HashMap<String, HashMap<String, List<IRecipe<?>>>> recipes = new HashMap<>();
     private static final SuggestionProvider<CommandSource> SUGGEST_NS = (ctx, builder) -> {
         if (check(ctx) == null) {
             return builder.buildFuture();
         }
         for (String key : recipes.keySet()) {
-            logger.info(key);
             builder.suggest(key);
         }
         return builder.buildFuture();
@@ -44,6 +52,20 @@ public class RecipeCommand {
         HashMap<String, List<IRecipe<?>>> map = recipes.getOrDefault(ns, new HashMap<>());
         for (String key : map.keySet()) {
             builder.suggest(key);
+        }
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<CommandSource> SUGGEST_RECIPE_ID = (ctx, builder) -> {
+        String ns = StringArgumentType.getString(ctx, "ns");
+        String path = StringArgumentType.getString(ctx, "path");
+        if (check(ctx) == null) {
+            return builder.buildFuture();
+        }
+        HashMap<String, List<IRecipe<?>>> map = recipes.getOrDefault(ns, new HashMap<>());
+        List<IRecipe<?>> recs = map.getOrDefault(path, new ArrayList<>());
+        for (IRecipe<?> rec: recs) {
+            builder.suggest(rec.getId().toString());
         }
         return builder.buildFuture();
     };
@@ -162,8 +184,7 @@ public class RecipeCommand {
                                     player.sendMessage(randomRecipe(recs), Util.NIL_UUID);
                                     break;
                                 case "dump":
-                                    MaterializedRecipe[] json = dumpRecipe(recs, path);
-                                    player.sendMessage(new StringTextComponent(String.format("dumped %d recipes", json.length)), Util.NIL_UUID);
+                                    dumpRecipe(player, ns, path);
                                     break;
                                 default:
                                     player.sendMessage(new StringTextComponent("unknown operation"), Util.NIL_UUID);
@@ -172,53 +193,191 @@ public class RecipeCommand {
                             return 1;
                         })
                     )
-                )
+                .then(Commands.literal("print")
+                        .then(Commands.argument("recipe_id", StringArgumentType.string()).suggests(SUGGEST_RECIPE_ID)
+                                .executes(ctx -> {
+                                    ServerPlayerEntity player = check(ctx);
+                                    if (player == null) {
+                                        return 0;
+                                    }
+                                    String ns = StringArgumentType.getString(ctx, "ns");
+                                    String path = StringArgumentType.getString(ctx, "path");
+                                    String recipeId = StringArgumentType.getString(ctx, "recipe_id");
+                                    HashMap<String, List<IRecipe<?>>> map = recipes.getOrDefault(ns, new HashMap<>());
+                                    List<IRecipe<?>> recs = map.getOrDefault(path, new ArrayList<>());
+                                    for (IRecipe<?> rec: recs) {
+                                        if (rec.getId().toString().equals(recipeId)) {
+                                            player.sendMessage(uglyPrint(materialize(rec)), Util.NIL_UUID);
+                                        }
+                                    }
+                                    return 1;
+
+                                })
+                        )
+                ))
             );
     }
 
-    private static MaterializedRecipe[] dumpRecipe(List<IRecipe<?>> recs, String path) {
+    private static void dumpRecipe(ServerPlayerEntity player, String namespace, String path) {
+        TheToolkitsPacketHandler.sendTo(PacketDistributor.PLAYER.with(() -> player), new MessageDumpRecipe(namespace, path));
     }
 
     private static ITextComponent randomRecipe(List<IRecipe<?>> recs) {
         Random rand = new Random();
         IRecipe<?> result = recs.get(rand.nextInt(recs.size()));
         MaterializedRecipe mr = materialize(result);
-        StringBuilder sb = new StringBuilder();
-        TextComponent result = new StringTextComponent("");
-        result.append(new StringTextComponent("id").withStyle(TextFormatting.RED)).append(": ")
-                .append(new StringTextComponent(mr.id.toString())).append("\n");
-        result.append(new StringTextComponent("group").withStyle(TextFormatting.RED)).append(": ")
-                .append(new StringTextComponent(mr.group)).append("\n");
-        result.append(new StringTextComponent("type").withStyle(TextFormatting.RED)).append(": ")
-                .append(new StringTextComponent(mr.type)).append("\n");
-        result.append(new StringTextComponent("isSpecial").withStyle(TextFormatting.RED)).append(": ")
-                .append(new StringTextComponent(mr.isSpecial.toString())).append("\n");
-        result.append(new StringTextComponent("result").withStyle(TextFormatting.RED)).append(": ")
-                .append(new StringTextComponent(ForgeRegistries.ITEMS.getKey(mr.result.getItem()).toString()).append("\n");
-        return result;
+        return uglyPrint(mr);
     }
-    private static String getResourceID() {
-        ForgeRegistries.ITEMS.getKey(mr.result.getItem()).
+    private static ITextComponent uglyPrint(MaterializedRecipe mr) {
+        TextComponent tc = new StringTextComponent("");
+        tc.append(new StringTextComponent("id").withStyle(TextFormatting.RED)).append(": ")
+                .append(new StringTextComponent(mr.id.toString())).append("\n");
+        tc.append(new StringTextComponent("group").withStyle(TextFormatting.RED)).append(": ")
+                .append(new StringTextComponent(mr.group)).append("\n");
+        tc.append(new StringTextComponent("type").withStyle(TextFormatting.RED)).append(": ")
+                .append(new StringTextComponent(mr.type)).append("\n");
+        tc.append(new StringTextComponent("isSpecial").withStyle(TextFormatting.RED)).append(": ")
+                .append(new StringTextComponent(mr.isSpecial.toString())).append("\n");
+        String ingredientsString = mr.ingredients.stream().map(ingredient -> ingredient.toJson().toString())
+                .collect(Collectors.joining(","));
+        tc.append(new StringTextComponent("ingredients").withStyle(TextFormatting.RED)).append(": ")
+                .append(new StringTextComponent(ingredientsString)).append("\n");
+        tc.append(new StringTextComponent("result").withStyle(TextFormatting.RED)).append(": ")
+                .append(new StringTextComponent(getResourceID(mr.result))).append("\n");
+        tc.setStyle(tc.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, tc.getString())));
+        return tc;
+    }
+
+    private static String getResourceID(ItemStack is) {
+        ResourceLocation rl = ForgeRegistries.ITEMS.getKey(is.getItem());
+        if (rl == null) {
+            return "";
+        }
+        return rl.toString();
     }
     private static ITextComponent listRecipe(List<IRecipe<?>> recs) {
         StringBuilder sb = new StringBuilder();
-        for (IRecipe<?> rec : recs) {
+        for (IRecipe<?> rec : recs.subList(0, Math.min(recs.size(), 50))) {
             sb.append(rec.getId());
+            sb.append('\n');
         }
         return new StringTextComponent(sb.toString());
     }
 
-    private static MaterializedRecipe materialize(IRecipe<?> recipe) {
+    public static MaterializedRecipe materialize(IRecipe<?> recipe) {
         ResourceLocation id = recipe.getId();
         String group = recipe.getGroup();
         String type = recipe.getType().toString();
         Boolean isSpecial = recipe.isSpecial();
         ItemStack result = recipe.getResultItem();
-        //List<JsonElement> ingredients = recipe.getIngredients().stream().map(Ingredient::toJson).collect(Collectors.toList());
         NonNullList<Ingredient> ingredients = recipe.getIngredients();
         return new MaterializedRecipe(id, group, type, isSpecial, result, ingredients);
     }
 
+    public static String toJSON(MaterializedRecipe mr) {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(ResourceLocation.class, new ResourceLocationSerializer())
+                .registerTypeAdapter(ItemStack.class, new ItemStackSerializer())
+                .registerTypeAdapter(Ingredient.class, new IngredientSerializer())
+                .setPrettyPrinting()
+                .create();
+        return gson.toJson(mr);
+    }
+    public static String toJSON(List<MaterializedRecipe> mrs) {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(ResourceLocation.class, new ResourceLocationSerializer())
+                .registerTypeAdapter(ItemStack.class, new ItemStackSerializer())
+                .registerTypeAdapter(Ingredient.class, new IngredientSerializer())
+                .setPrettyPrinting()
+                .create();
+        return gson.toJson(mrs);
+    }
+
+    static class ResourceLocationSerializer implements JsonSerializer<ResourceLocation> {
+        @Override
+        public JsonElement serialize(ResourceLocation src, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(src.toString());
+        }
+    }
+    static class ItemStackSerializer implements JsonSerializer<ItemStack> {
+        @Override
+        public JsonElement serialize(ItemStack src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject obj = new JsonObject();
+            obj.addProperty("id", getResourceID(src));
+            obj.addProperty("num", src.getCount());
+            CompoundNBT nbt = src.getTag();
+            if (nbt == null) {
+                obj.add("nbt", new JsonObject());
+            } else {
+                obj.add("nbt", compoundNBTToJson(nbt));
+            }
+            return obj;
+        }
+    }
+
+    static class IngredientSerializer implements JsonSerializer<Ingredient> {
+        @Override
+        public JsonElement serialize(Ingredient src, Type typeOfSrc, JsonSerializationContext context) {
+            return src.toJson();
+        }
+    }
+    public static JsonObject compoundNBTToJson(CompoundNBT nbt) {
+        JsonObject jsonObject = new JsonObject();
+
+        for (String key : nbt.getAllKeys()) {
+            INBT value = nbt.get(key);
+            JsonElement jsonValue = convertNBTToJson(value);
+            jsonObject.add(key, jsonValue);
+        }
+
+        return jsonObject;
+    }
+
+    private static JsonElement convertNBTToJson(INBT value) {
+        if (value instanceof CompoundNBT) {
+            return compoundNBTToJson((CompoundNBT) value);
+        } else if (value instanceof ListNBT) {
+            JsonArray jsonArray = new JsonArray();
+            ListNBT listNBT = (ListNBT) value;
+            for (INBT element : listNBT) {
+                jsonArray.add(convertNBTToJson(element));
+            }
+            return jsonArray;
+        } else if (value instanceof StringNBT) {
+            return new JsonPrimitive(((StringNBT) value).toString());
+        } else if (value instanceof IntNBT) {
+            return new JsonPrimitive(((IntNBT) value).getAsInt());
+        } else if (value instanceof LongNBT) {
+            return new JsonPrimitive(((LongNBT) value).getAsLong());
+        } else if (value instanceof FloatNBT) {
+            return new JsonPrimitive(((FloatNBT) value).getAsFloat());
+        } else if (value instanceof DoubleNBT) {
+            return new JsonPrimitive(((DoubleNBT) value).getAsDouble());
+        } else if (value instanceof ByteArrayNBT) {
+            JsonArray jsonArray = new JsonArray();
+            byte[] byteArray = ((ByteArrayNBT) value).getAsByteArray();
+            for (byte b : byteArray) {
+                jsonArray.add(new JsonPrimitive(b));
+            }
+            return jsonArray;
+        } else if (value instanceof IntArrayNBT) {
+            JsonArray jsonArray = new JsonArray();
+            int[] intArray = ((IntArrayNBT) value).getAsIntArray();
+            for (int i : intArray) {
+                jsonArray.add(new JsonPrimitive(i));
+            }
+            return jsonArray;
+        } else if (value instanceof LongArrayNBT) {
+            JsonArray jsonArray = new JsonArray();
+            long[] longArray = ((LongArrayNBT) value).getAsLongArray();
+            for (long l : longArray) {
+                jsonArray.add(new JsonPrimitive(l));
+            }
+            return jsonArray;
+        } else {
+            return new JsonPrimitive(value.toString());
+        }
+    }
     public static class MaterializedRecipe {
         ResourceLocation id;
         String group;
@@ -228,7 +387,7 @@ public class RecipeCommand {
 
         NonNullList<Ingredient> ingredients;
 
-        public MaterializedRecipe(ResourceLocation id, String group, String type, Boolean isSpecial, ItemStack result, List<JsonElement> ingredients) {
+        public MaterializedRecipe(ResourceLocation id, String group, String type, Boolean isSpecial, ItemStack result, NonNullList<Ingredient> ingredients) {
             this.id = id;
             this.group = group;
             this.type = type;

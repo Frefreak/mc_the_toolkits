@@ -16,7 +16,7 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 
 
-version = '1.4'
+version = '1.5'
 group = 'nz.carso.the_toolkits'
 archivesBaseName = 'the-toolkits'
 
@@ -149,6 +149,8 @@ dependencies {
 
     compileOnly fg.deobf("mezz.jei:jei-${mcVersion}:${jeiVersion}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${mcVersion}:${jeiVersion}")
+
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 jar {
