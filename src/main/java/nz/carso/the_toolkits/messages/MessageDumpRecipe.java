@@ -2,16 +2,16 @@ package nz.carso.the_toolkits.messages;
 
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.Util;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.NetworkEvent;
 import nz.carso.the_toolkits.Constants;
 import nz.carso.the_toolkits.Utils;
 import nz.carso.the_toolkits.commands.RecipeCommand;
-import nz.carso.the_toolkits.compat.jei.TheToolkitsJEI;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +45,7 @@ public class MessageDumpRecipe implements AbstractMessage<MessageDumpRecipe> {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void handle(MessageDumpRecipe msg, Supplier<NetworkEvent.Context> ctx) {
         String filename = String.format("%s-%s.json", msg.namespace, msg.path);
         HashMap<String, List<IRecipe<?>>> submap = RecipeCommand.recipes.getOrDefault(msg.namespace, new HashMap<>());

@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.RecipeManager;
+import net.minecraft.item.crafting.ShapedRecipe;
 import net.minecraft.nbt.*;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
@@ -22,11 +23,9 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import nz.carso.the_toolkits.TheToolkitsPacketHandler;
-import nz.carso.the_toolkits.messages.MessageDoJEISearch;
 import nz.carso.the_toolkits.messages.MessageDumpRecipe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.jmx.Server;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -271,7 +270,14 @@ public class RecipeCommand {
         Boolean isSpecial = recipe.isSpecial();
         ItemStack result = recipe.getResultItem();
         NonNullList<Ingredient> ingredients = recipe.getIngredients();
-        return new MaterializedRecipe(id, group, type, isSpecial, result, ingredients);
+        int width = -1;
+        int height = -1;
+        if (recipe instanceof ShapedRecipe) {
+            ShapedRecipe shapedRecipe = (ShapedRecipe)recipe;
+            width = shapedRecipe.getWidth();
+            height = shapedRecipe.getHeight();
+        }
+        return new MaterializedRecipe(id, group, type, isSpecial, result, ingredients, width, height);
     }
 
     public static String toJSON(MaterializedRecipe mr) {
@@ -385,15 +391,20 @@ public class RecipeCommand {
         Boolean isSpecial;
         ItemStack result;
 
+        int width;
+        int height;
+
         NonNullList<Ingredient> ingredients;
 
-        public MaterializedRecipe(ResourceLocation id, String group, String type, Boolean isSpecial, ItemStack result, NonNullList<Ingredient> ingredients) {
+        public MaterializedRecipe(ResourceLocation id, String group, String type, Boolean isSpecial, ItemStack result, NonNullList<Ingredient> ingredients, int width, int height) {
             this.id = id;
             this.group = group;
             this.type = type;
             this.isSpecial = isSpecial;
             this.result = result;
             this.ingredients = ingredients;
+            this.width = width;
+            this.height = height;
         }
     }
 }

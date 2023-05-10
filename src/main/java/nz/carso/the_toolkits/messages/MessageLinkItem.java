@@ -10,7 +10,6 @@ import net.minecraft.util.text.*;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.List;
 import java.util.function.Supplier;
 
 public class MessageLinkItem implements AbstractMessage<MessageLinkItem> {
