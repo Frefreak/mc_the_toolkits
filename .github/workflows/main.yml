@@ -22,25 +22,25 @@ jobs:
       - name: Upload JAR files as artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: jar-files-${{ matrix.branch }}
+          name: my-artifact-${{ github.run_number }}
           path: build/libs/*.jar
 
   release:
-      needs: build
-      runs-on: ubuntu-latest
-      steps:
-        - name: Download all artifacts
-          uses: actions/download-artifact@v2
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download JAR files as artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: my-artifact-${{ github.run_number }}
+          path: jars/
 
-        - name: Unpack artifacts
-          run: |
-            mkdir jars
-            find . -name "*.jar" -exec cp {} jars/ \;
+      - name: List files in /jars directory
+        run: |
+          ls -la jars/
 
-        - name: Create GitHub release and upload JAR files
-          uses: Roang-zero1/github-create-release-action@v3
-          with:
-            version_regex: .*
-            files: 'jars/*.jar'
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            jars/*.jar
