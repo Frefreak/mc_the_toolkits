@@ -19,10 +19,28 @@ jobs:
       - name: Run Gradle build
         run: ./gradlew build
 
-      - name: Create GitHub release and upload JAR files
-        uses: Roang-zero1/github-create-release-action@v3
+      - name: Upload JAR files as artifacts
+        uses: actions/upload-artifact@v2
         with:
-          version_regex: .*
-          files: 'build/libs/*.jar'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: jar-files-${{ matrix.branch }}
+          path: build/libs/*.jar
+
+  release:
+      needs: build
+      runs-on: ubuntu-latest
+      steps:
+        - name: Download all artifacts
+          uses: actions/download-artifact@v2
+
+        - name: Unpack artifacts
+          run: |
+            mkdir jars
+            find . -name "*.jar" -exec cp {} jars/ \;
+
+        - name: Create GitHub release and upload JAR files
+          uses: Roang-zero1/github-create-release-action@v3
+          with:
+            version_regex: .*
+            files: 'jars/*.jar'
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
