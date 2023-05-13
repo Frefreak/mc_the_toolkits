@@ -1,11 +1,18 @@
 package nz.carso.the_toolkits.messages;
 
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.Util;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -19,8 +26,11 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import net.minecraft.entity.player.PlayerEntity;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MessageDumpRecipe implements AbstractMessage<MessageDumpRecipe> {
+    private final Logger logger = LogManager.getLogger();
     String namespace;
     String path;
 
@@ -47,25 +57,62 @@ public class MessageDumpRecipe implements AbstractMessage<MessageDumpRecipe> {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void handle(MessageDumpRecipe msg, Supplier<NetworkEvent.Context> ctx) {
+        PlayerEntity entityPlayer = Minecraft.getInstance().player;
+        if (entityPlayer == null) {
+            return;
+        }
+
+
+        ClientWorld level = Minecraft.getInstance().level;
+        if (level == null) {
+            logger.warn("got null level");
+            return;
+        }
+        RecipeManager mgr = level.getRecipeManager();
+        if (RecipeCommand.recipes.isEmpty()) {
+            logger.info("populating recipes");
+            RecipeCommand.initRecipes(mgr);
+        }
         String filename = String.format("%s-%s.json", msg.namespace, msg.path);
         HashMap<String, List<IRecipe<?>>> submap = RecipeCommand.recipes.getOrDefault(msg.namespace, new HashMap<>());
         List<IRecipe<?>> recipes = submap.getOrDefault(msg.path, new ArrayList<>());
         List<RecipeCommand.MaterializedRecipe> mrs = recipes.stream().map(RecipeCommand::materialize).collect(Collectors.toList());
-        String content = RecipeCommand.toJSON(mrs);
-        ctx.get().enqueueWork(() -> {
-            Boolean ok = Utils.saveFile(content, filename);
-            PlayerEntity entityPlayer = Minecraft.getInstance().player;
-            if (entityPlayer == null) {
-                return;
+        JsonArray result = new JsonArray();
+        List<String> failed = new ArrayList<>();
+
+        entityPlayer.sendMessage(new StringTextComponent(String.format("%d recipes before transform", mrs.size())), Util.NIL_UUID);
+        for (RecipeCommand.MaterializedRecipe mr: mrs) {
+            try {
+                JsonElement tree = RecipeCommand.toJSONTree(mr);
+                result.add(tree);
+            } catch (Exception | AssertionError e) {
+                failed.add(mr.id.toString());
             }
+        }
+        entityPlayer.sendMessage(new StringTextComponent(String.format("got %d entries after transformation", result.size())), Util.NIL_UUID);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String content = gson.toJson(result);
+        ctx.get().enqueueWork(() -> {
+            if (failed.size() > 0) {
+                entityPlayer.sendMessage(new StringTextComponent(
+                        String.format("there are §c%d§r failed recipes during conversion, see logs for a list (maximum 10)," +
+                                        " and use printj to try to pinpoint the issue",
+                                failed.size())), Util.NIL_UUID);
+                StringBuilder sb = new StringBuilder();
+                for (String f : failed.subList(0, Math.min(10, failed.size()))) {
+                    sb.append(f);
+                    sb.append('\n');
+                }
+                logger.warn(sb.toString());
+            }
+            Boolean ok = Utils.saveFile(content, filename);
             if (ok) {
                 entityPlayer.sendMessage(new StringTextComponent(
-                                String.format("saved success: %s/%s-%s.json", Constants.MOD_ID, msg.namespace, msg.path)),
+                                String.format("saved success: §a%s/%s-%s.json§r", Constants.MOD_ID, msg.namespace, msg.path)),
                         Util.NIL_UUID);
             } else {
-                entityPlayer.sendMessage(new StringTextComponent("save failed, see log for more info"),
+                entityPlayer.sendMessage(new StringTextComponent("save process failed, see log for more info"),
                         Util.NIL_UUID);
-
             }
         });
         ctx.get().setPacketHandled(true);
