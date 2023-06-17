@@ -1,5 +1,15 @@
 ## 1.6.5
 
+#### 1.7.0
+
+- add block entity inspection command
+    - `block_entity summary`
+    - `block_entity locations <registry_name>`
+
+#### 1.6.2
+
+- optimize file transfer size (gzip)
+
 #### 1.6.1
 
 - fix bug (loaded a client class in server)

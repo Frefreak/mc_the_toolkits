@@ -104,6 +104,7 @@ public class TheToolkitsEventHandler {
                     .then(JEISearchItemCommand.register())
                     .then(NBTCommand.register())
                     .then(DumpEntityCommand.register())
+                    .then(DumpBlockEntityCommand.register())
                     .then(AttributesCommand.register())
                     .then(RecipeCommand.register())
                     .then(TestCommand.register());
