@@ -1,5 +1,9 @@
 ## 1.6.5
 
+#### 1.7.1
+
+- fix field name (`visibleChunkMap` -> `field_219252_f`)
+
 #### 1.7.0
 
 - add block entity inspection command

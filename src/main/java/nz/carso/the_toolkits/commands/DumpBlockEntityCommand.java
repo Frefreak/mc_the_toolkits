@@ -36,7 +36,8 @@ public class DumpBlockEntityCommand {
         Class<?> chunkManagerClass = mgr.getClass();
         Field visibleChunkMapField = null;
         try {
-            visibleChunkMapField = chunkManagerClass.getDeclaredField("visibleChunkMap");
+            //visibleChunkMapField = chunkManagerClass.getDeclaredField("visibleChunkMap");
+            visibleChunkMapField = chunkManagerClass.getDeclaredField("field_219252_f");
         } catch (NoSuchFieldException e) {
             e.printStackTrace();
             return null;
