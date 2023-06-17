@@ -1,5 +1,6 @@
 package nz.carso.the_toolkits.messages;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
@@ -12,6 +13,7 @@ import nz.carso.the_toolkits.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.util.function.Supplier;
 
 public class MessageSaveFile implements AbstractMessage<MessageSaveFile> {
@@ -29,16 +31,45 @@ public class MessageSaveFile implements AbstractMessage<MessageSaveFile> {
     }
 
     @Override
-    public void write(MessageSaveFile msg, PacketBuffer fb)
-    {
+    public void write(MessageSaveFile msg, PacketBuffer fb) {
+        logger.info(String.format("sending file, path %s, size %d", msg.path, msg.content.length()));
         fb.writeUtf(msg.path);
-        fb.writeUtf(msg.content);
+        byte[] content;
+        try {
+            content = Utils.compressString(msg.content);
+            fb.writeByte(0); // gzip compressed []byte
+            logger.info("after compression, size is " + content.length);
+            fb.writeBytes(content);
+        } catch (IOException e) {
+            e.printStackTrace();
+            fb.writeByte(1); // original utf8 string
+            fb.writeUtf(Utils.getStackTraceAsString(e));
+        }
     }
 
     @Override
     public MessageSaveFile read(PacketBuffer fb)
     {
-        return new MessageSaveFile(fb.readUtf(), fb.readUtf());
+        String path = fb.readUtf();
+        byte type = fb.readByte();
+        if (type == 0) {
+            byte[] content = new byte[fb.readableBytes()];
+            fb.readBytes(content);
+            String realContent = "";
+            try {
+                realContent = Utils.decompressString(content);
+            } catch (IOException e) {
+                e.printStackTrace();
+                realContent = Utils.getStackTraceAsString(e);
+            }
+            return new MessageSaveFile(path, realContent);
+        } else if (type == 1) {
+            String content = fb.readUtf();
+            return new MessageSaveFile(path, content);
+        } else {
+            logger.error("invalid format");
+            return new MessageSaveFile(path, "");
+        }
     }
 
     @Override

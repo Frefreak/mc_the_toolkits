@@ -4,15 +4,19 @@ import com.mojang.brigadier.Message;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.registries.ForgeRegistries;
 import nz.carso.the_toolkits.TheToolkitsPacketHandler;
 import nz.carso.the_toolkits.messages.MessageSaveFile;
 import org.apache.logging.log4j.LogManager;
@@ -112,7 +116,8 @@ public class DumpEntityCommand {
                                     return 0;
                             }
                             if (name.equals(targetName)) {
-                                sb.append(entity.position());
+                                Vector3d pos = entity.position();
+                                sb.append(String.format("%.3f %.3f %.3f", pos.x, pos.y, pos.z));
                                 sb.append("\n");
                             }
                         }
