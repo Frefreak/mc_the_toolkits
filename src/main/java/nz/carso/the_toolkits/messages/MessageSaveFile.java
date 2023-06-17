@@ -2,14 +2,11 @@ package nz.carso.the_toolkits.messages;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.server.management.PlayerList;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.util.text.*;
-import net.minecraft.util.text.event.ClickEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.NetworkEvent;
 import nz.carso.the_toolkits.Utils;
 import org.apache.logging.log4j.LogManager;
@@ -45,6 +42,7 @@ public class MessageSaveFile implements AbstractMessage<MessageSaveFile> {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void handle(MessageSaveFile msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             PlayerEntity player = Minecraft.getInstance().player;

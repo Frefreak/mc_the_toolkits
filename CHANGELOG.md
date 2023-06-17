@@ -1,5 +1,9 @@
 ## 1.6.5
 
+#### 1.6.1
+
+- fix bug (loaded a client class in server)
+
 #### 1.6.0
 
 - add `entity summary <classname/name/registry_name>` command
