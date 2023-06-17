@@ -103,6 +103,7 @@ public class TheToolkitsEventHandler {
             LiteralArgumentBuilder<CommandSource> builder = Commands.literal("the-toolkits")
                     .then(JEISearchItemCommand.register())
                     .then(NBTCommand.register())
+                    .then(DumpEntityCommand.register())
                     .then(AttributesCommand.register())
                     .then(RecipeCommand.register())
                     .then(TestCommand.register());
