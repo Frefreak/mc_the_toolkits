@@ -1,0 +1,46 @@
+name: Build and Release
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branch: [1.19, 1.18.2, 1.16.5]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ matrix.branch }}
+
+      - name: Run Gradle build
+        run: ./gradlew build
+
+      - name: Upload JAR files as artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: my-artifact-${{ github.run_number }}
+          path: build/libs/*.jar
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download JAR files as artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: my-artifact-${{ github.run_number }}
+          path: jars/
+
+      - name: List files in /jars directory
+        run: |
+          ls -la jars/
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            jars/*.jar
