@@ -19,7 +19,6 @@ import nz.carso.the_toolkits.messages.MessageSaveFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,24 +27,7 @@ public class DumpBlockEntityCommand {
 
     private static Long2ObjectLinkedOpenHashMap<ChunkHolder> getChunkMap(ServerLevel level) {
         ChunkMap mgr = level.getChunkSource().chunkMap;
-        // TODO: use access transformer
-        Class<?> chunkManagerClass = mgr.getClass();
-        Field visibleChunkMapField = null;
-        try {
-            //visibleChunkMapField = chunkManagerClass.getDeclaredField("visibleChunkMap");
-            visibleChunkMapField = chunkManagerClass.getDeclaredField("field_219252_f");
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-            return null;
-        }
-        visibleChunkMapField.setAccessible(true);
-        Long2ObjectLinkedOpenHashMap<ChunkHolder> chunkMap = null;
-        try {
-            return (Long2ObjectLinkedOpenHashMap<ChunkHolder>)visibleChunkMapField.get(mgr);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return mgr.visibleChunkMap;
     }
 
     public static ArgumentBuilder<CommandSourceStack, ?> register() {
