@@ -24,6 +24,6 @@ A mod providing various utilities to inspect the internal of game objects
 [[dependencies.the_toolkits]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.18.2,1.19)"
+    versionRange="${minecraftVersionRange}"
     ordering="NONE"
     side="BOTH"
