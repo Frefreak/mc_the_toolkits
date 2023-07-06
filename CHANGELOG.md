@@ -1,6 +1,11 @@
 ## 1.19.2
 
-#### 1.7.1
+#### 1.8.1
+
+- use `Minecraft.tell` to call `setScreen`
+
+
+#### 1.8.0
 
 - add block entity inspection command
     - `block_entity summary`

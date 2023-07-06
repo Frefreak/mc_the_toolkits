@@ -1,5 +1,6 @@
 package nz.carso.the_toolkits.compat.jei;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.logging.LogUtils;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.ingredients.ITypedIngredient;
@@ -7,8 +8,15 @@ import mezz.jei.api.runtime.IBookmarkOverlay;
 import mezz.jei.api.runtime.IIngredientFilter;
 import mezz.jei.api.runtime.IIngredientListOverlay;
 import mezz.jei.api.runtime.IJeiRuntime;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.ConfirmLinkScreen;
+import net.minecraft.client.gui.screens.PauseScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.HasCustomInventoryScreen;
 import net.minecraft.world.item.ItemStack;
 import nz.carso.the_toolkits.Constants;
 
@@ -76,8 +84,9 @@ public class TheToolkitsJEI implements IModPlugin {
         IIngredientFilter filter = theRuntime.getIngredientFilter();
         filter.setFilterText(text);
         if (mc.player != null) {
-            // mc.setScreen(new InventoryScreen(mc.player));
-            mc.player.sendSystemMessage(Component.literal("disable opening inventory for now"));
+            mc.tell(() -> mc.setScreen(new InventoryScreen(mc.player)));
+            //mc.player.sendSystemMessage(Component.literal("disable opening inventory for now"));
         }
     }
+
 }
