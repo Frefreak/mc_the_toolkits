@@ -6,6 +6,7 @@ buildscript {
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath 'org.parchmentmc:librarian:1.+'
     }
 }
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
@@ -14,9 +15,10 @@ plugins {
     id 'maven-publish'
 }
 apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.parchmentmc.librarian.forgegradle'
 
 
-version = '1.4'
+version = '1.7.1'
 group = 'nz.carso.the_toolkits'
 archivesBaseName = 'the-toolkits'
 
@@ -38,15 +40,18 @@ minecraft {
     //
     // Use non-default mappings at your own risk. They may not always work.
     // Simply re-run your setup task after changing the mappings to update your workspace.
-    mappings channel: 'official', version: "${mcVersion}"
+    mappings channel: 'parchment', version: "${parchmentmcVersion}-${mcVersion}"
 
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {
         client {
             workingDirectory project.file('run')
+
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
             // Recommended logging data for a userdev environment
             // The markers can be added/remove as needed separated by commas.
@@ -72,6 +77,9 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
+
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
             property 'forge.logging.markers', 'REGISTRIES'
 
@@ -118,6 +126,9 @@ minecraft {
         data {
             workingDirectory project.file('run')
 
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+
             property 'forge.logging.markers', 'REGISTRIES'
 
             property 'forge.logging.console.level', 'debug'
@@ -150,6 +161,7 @@ dependencies {
 
     compileOnly fg.deobf("mezz.jei:jei-${mcVersion}-common-api:${jeiVersion}")
     runtimeOnly fg.deobf("mezz.jei:jei-${mcVersion}-forge:${jeiVersion}")
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 jar {
@@ -177,11 +189,6 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifact jar
-        }
-    }
-    repositories {
-        maven {
-            url "file://${project.projectDir}/mcmodsrepo"
         }
     }
 }
