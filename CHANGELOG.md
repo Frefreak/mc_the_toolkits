@@ -8,5 +8,5 @@
 - add `entity summary <classname/name/registry_name>` command
 - add `entity locations <classname/name/registry_name> <name>` command
 - add printj command (`/the-toolkits recipe <ns> <path> printj <recipeId>`) to try to convert for a single recipe
-- add search command (`/the-toolkits search <recipeId>`) to search for the serializer
+- add search command (`/the-toolkits recipe search <recipeId>`) to search for the serializer
 
